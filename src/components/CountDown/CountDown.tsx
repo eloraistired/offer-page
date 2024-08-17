@@ -1,8 +1,9 @@
 'use client';
 import { cn } from '@/lib/utils';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 import * as React from 'react';
 import { Button } from '../ui/button';
+import { Checkout } from '../Checkout/Checkout';
 
 interface CountDownProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
@@ -53,7 +54,7 @@ const CountDown = React.forwardRef<HTMLDivElement, CountDownProps>(({ className,
     };
   }, [date, calculateTimeLeft]);
   return (
-    <div ref={ref} className={cn('text-center fixed bottom-0 md:bottom-6 md:right-5 z-10', className)} {...props}>
+    <div ref={ref} className={cn('text-center fixed bottom-0 max-md:right-0 max-md:left-0 md:bottom-6 md:right-5 z-10', className)} {...props}>
       <h1 className="font-semibold border py-2 px-3 text-sm bg-secondary-background text-primary rounded-sm">{children}</h1>
       <div className="flex md:inline-flex justify-center overflow-hidden mx-auto rounded-t-lg md:rounded-lg border bg-primary">
         <div className="text-center w-full md:w-[72px] py-2 flex items-center justify-center flex-col bg-white border-r border-dashed">
@@ -81,9 +82,13 @@ const CountDown = React.forwardRef<HTMLDivElement, CountDownProps>(({ className,
           </h2>
         </div>
         <div className="w-12 min-w-12">
-          <Button className='text-white w-full h-full p-0'>
-            <ArrowRight />
-          </Button>
+          <Checkout>
+            <Button className="text-white w-full h-full p-0" asChild>
+              <a href="#benefits">
+                <ArrowRight />
+              </a>
+            </Button>
+          </Checkout>
         </div>
       </div>
     </div>
