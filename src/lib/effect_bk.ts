@@ -56,36 +56,51 @@ export class EmojiConfetti {
             ovalScalar: 0.6,
             scalar,
             opacity: 1,
-            freezeProgress: 0,
+            surfaceFriction: 0.1,
+            isFrozen: false,
         };
     }
 
     private updateFetti(fetti: Fetti): boolean {
         if (this.freezeConfetti) {
-            fetti.freezeProgress = Math.min(1, fetti.freezeProgress + 0.02);
-            const easedProgress = this.easeOutCubic(fetti.freezeProgress);
-            
-            fetti.velocity *= (1 - easedProgress);
-            fetti.gravity *= (1 - easedProgress);
-            fetti.wobbleSpeed *= (1 - easedProgress);
+            // Apply surface friction
+            fetti.velocity *= (1 - fetti.surfaceFriction);
+            fetti.gravity *= (1 - fetti.surfaceFriction);
+
+            // Check if the fetti has effectively stopped
+            if (Math.abs(fetti.velocity) < 0.01 && Math.abs(fetti.gravity) < 0.01) {
+                fetti.velocity = 0;
+                fetti.gravity = 0;
+                fetti.isFrozen = true;
+            }
         }
 
-        fetti.x += Math.cos(fetti.angle2D) * fetti.velocity + fetti.drift;
-        fetti.y += Math.sin(fetti.angle2D) * fetti.velocity + fetti.gravity;
-        fetti.velocity *= fetti.decay;
+        if (!fetti.isFrozen) {
+            fetti.x += Math.cos(fetti.angle2D) * fetti.velocity + fetti.drift;
+            fetti.y += Math.sin(fetti.angle2D) * fetti.velocity + fetti.gravity;
+            fetti.velocity *= fetti.decay;
 
-        fetti.wobble += fetti.wobbleSpeed * (1 - fetti.freezeProgress);
-        fetti.wobbleX = fetti.x + (10 * fetti.scalar * Math.cos(fetti.wobble));
-        fetti.wobbleY = fetti.y + (10 * fetti.scalar * Math.sin(fetti.wobble));
+            if (!this.freezeConfetti) {
+                fetti.wobble += fetti.wobbleSpeed;
+                fetti.wobbleX = fetti.x + (10 * fetti.scalar * Math.cos(fetti.wobble));
+                fetti.wobbleY = fetti.y + (10 * fetti.scalar * Math.sin(fetti.wobble));
+            } else {
+                fetti.wobbleX = fetti.x;
+                fetti.wobbleY = fetti.y;
+            }
 
-        fetti.tiltAngle += 0.1 * (1 - fetti.freezeProgress);
-        fetti.tiltSin = Math.sin(fetti.tiltAngle);
-        fetti.tiltCos = Math.cos(fetti.tiltAngle);
-        fetti.random = Math.random() + 2;
+            fetti.tiltAngle += 0.1;
+            fetti.tiltSin = Math.sin(fetti.tiltAngle);
+            fetti.tiltCos = Math.cos(fetti.tiltAngle);
+            fetti.random = Math.random() + 2;
+        }
 
         const progress = (fetti.tick++) / fetti.totalTicks;
 
-        fetti.opacity = 1 - progress;
+        // Update opacity for fading effect only if not freezing
+        if (!this.freezeConfetti) {
+            fetti.opacity = 1 - progress;
+        }
 
         this.ctx.font = `${16 * fetti.scalar}px "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif`;
         this.ctx.globalAlpha = fetti.opacity;
@@ -96,11 +111,7 @@ export class EmojiConfetti {
         );
         this.ctx.globalAlpha = 1;
 
-        return fetti.tick < fetti.totalTicks;
-    }
-
-    private easeOutCubic(x: number): number {
-        return 1 - Math.pow(1 - x, 3);
+        return this.freezeConfetti ? !fetti.isFrozen : fetti.tick < fetti.totalTicks;
     }
 
     private animate(): void {
@@ -126,10 +137,15 @@ export class EmojiConfetti {
             gravity = 1,
             drift = 0,
             scalar = 1,
-            ticks = 200,
             origin = { x: 0.5, y: 0.5 },
-            emojis = ['🎉', '🎊', '✨', '⭐️', '🌟'],
+            freezeConfetti = false,
+            ticks = 200,
         } = options;
+
+        const colors = options.colors || ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff'];
+        const emojis = options.emojis || ['🎉', '🎊', '✨', '⭐️', '🌟'];
+
+        this.freezeConfetti = freezeConfetti;
 
         const startX = this.canvas.width * origin.x;
         const startY = this.canvas.height * origin.y;
@@ -142,7 +158,7 @@ export class EmojiConfetti {
                     angle,
                     spread,
                     startVelocity,
-                    color: 'white', // Not used for emojis
+                    color: colors[i % colors.length],
                     emoji: emojis[Math.floor(Math.random() * emojis.length)],
                     scalar,
                     ticks,
@@ -163,10 +179,6 @@ export class EmojiConfetti {
         this.fettis = [];
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.freezeConfetti = false;
-    }
-
-    public freeze(): void {
-        this.freezeConfetti = true;
     }
 }
 
@@ -193,7 +205,8 @@ interface Fetti {
     ovalScalar: number;
     scalar: number;
     opacity: number;
-    freezeProgress: number;
+    surfaceFriction: number;
+    isFrozen: boolean;
 }
 
 interface FettiOptions {
@@ -208,7 +221,7 @@ interface FettiOptions {
     ticks?: number;
 }
 
-export interface FireOptions {
+interface FireOptions {
     particleCount?: number;
     angle?: number;
     spread?: number;
@@ -217,7 +230,9 @@ export interface FireOptions {
     gravity?: number;
     drift?: number;
     scalar?: number;
-    ticks?: number;
     origin?: { x: number; y: number };
+    colors?: string[];
     emojis?: string[];
+    freezeConfetti?: boolean;
+    ticks?: number;
 }

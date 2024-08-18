@@ -7,12 +7,9 @@ const Page = () => {
   return (
     <>
       <Header className="bg-transparent backdrop-blur-none md:fixed w-full" showDashboard />
-      <Effect />
       <section className="md:py-6 py-14 container bg-[center_32%] bg-no-repeat bg-[size:1000px_165px]" style={{ backgroundImage: 'url(/effect.png)' }}>
         <div className="text-center pt-5">
-          <h1 className="text-4xl font-semibold bg-gradient-to-r from-violet-600 to-red-500 inline-block bg-clip-text text-fil [-webkit-text-fill-color:transparent] [-webkit-background-clip:text] py-1 ornament gif relative">
-            Congratulation!
-          </h1>
+          <Effect />
           <p className="text-lg mt-2 md:max-w-xl mx-auto">
             <span className="funnel revert">আপনার পেমেন্ট সফল হয়েছে।</span> আমাদের সাথে আপনার বিসনেস কে অটোমেশন এর সাহায্যে এগিয়ে নেওয়ার নতুন এই যাত্রায় আপনাকে স্বাগতম।
           </p>
@@ -63,7 +60,7 @@ const Page = () => {
               <div className="w-5">
                 <svg viewBox="0 0 49 45" fill="none">
                   <path
-                    stroke='#fff'
+                    stroke="#fff"
                     strokeWidth="1"
                     fillRule="evenodd"
                     clipRule="evenodd"
